@@ -23,19 +23,21 @@ class LibraryRepository(
 
     fun observeActiveBookings(): Flow<List<BookingWithBook>> = bookingDao.getActiveBookingsWithBooks()
 
-    suspend fun reserveBook(book: BookEntity, userName: String, rentalDurationDays: Int) {
+    /** Creates a PENDING booking, marks the book unavailable, and returns the return deadline. */
+    suspend fun reserveBook(book: BookEntity, userName: String, rentalDurationDays: Int): Long {
         val now = System.currentTimeMillis()
         val deadline = now + rentalDurationDays * DAY_MILLIS
         bookingDao.insertBooking(
             BookingEntity(
                 bookOwnerId = book.bookId,
-                userName = userName.trim(),
+                userName = userName,
                 bookingDate = now,
                 returnDeadline = deadline,
                 status = BookingStatus.PENDING
             )
         )
         bookDao.setAvailability(book.bookId, isAvailable = false)
+        return deadline
     }
 
     suspend fun renewBooking(bookingId: Long, additionalDays: Int) {

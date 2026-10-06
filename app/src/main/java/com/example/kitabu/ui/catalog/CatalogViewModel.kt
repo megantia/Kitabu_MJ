@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.kitabu.data.local.BookEntity
 import com.example.kitabu.data.repository.LibraryRepository
 import com.example.kitabu.domain.isValidRentalDuration
+import com.example.kitabu.domain.sanitizeUserName
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,14 +20,16 @@ class CatalogViewModel(private val repository: LibraryRepository) : ViewModel() 
 
     private val searchQuery = MutableStateFlow("")
     private val userMessage = MutableStateFlow<String?>(null)
+    private val confirmation = MutableStateFlow<ReservationConfirmation?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<CatalogUiState> = combine(
         searchQuery.flatMapLatest { query -> repository.searchBooks(query) },
         searchQuery,
-        userMessage
-    ) { books, query, message ->
-        CatalogUiState(books = books, searchQuery = query, userMessage = message)
+        userMessage,
+        confirmation
+    ) { books, query, message, reserved ->
+        CatalogUiState(books = books, searchQuery = query, userMessage = message, confirmation = reserved)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -38,8 +41,9 @@ class CatalogViewModel(private val repository: LibraryRepository) : ViewModel() 
     }
 
     fun reserveBook(book: BookEntity, userName: String, rentalDurationDays: Int) {
-        if (userName.isBlank()) {
-            userMessage.update { "Please enter your name to reserve a book." }
+        val cleanName = sanitizeUserName(userName)
+        if (cleanName.isEmpty()) {
+            userMessage.update { "Enter your name to reserve a book." }
             return
         }
         if (!isValidRentalDuration(rentalDurationDays)) {
@@ -47,12 +51,16 @@ class CatalogViewModel(private val repository: LibraryRepository) : ViewModel() 
             return
         }
         viewModelScope.launch {
-            repository.reserveBook(book, userName, rentalDurationDays)
-            userMessage.update { "Reserved \"${book.title}\"." }
+            val deadline = repository.reserveBook(book, cleanName, rentalDurationDays)
+            confirmation.update { ReservationConfirmation(book.title, deadline) }
         }
     }
 
     fun messageShown() {
         userMessage.update { null }
+    }
+
+    fun confirmationDismissed() {
+        confirmation.update { null }
     }
 }
