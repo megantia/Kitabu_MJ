@@ -17,7 +17,6 @@ import com.example.kitabu.ui.theme.Indigo
 private val RoseSpacing = 22.dp
 private val RoseHeight = 12.dp
 
-/** A row of gold roses on indigo, echoing the border of a khanga. */
 @Composable
 fun RoseStrip(modifier: Modifier = Modifier) {
     Canvas(
@@ -38,7 +37,6 @@ fun RoseStrip(modifier: Modifier = Modifier) {
     }
 }
 
-/** Indigo band framed top and bottom by rose strips; screen headers extend behind the status bar. */
 @Composable
 fun TextileBand(
     modifier: Modifier = Modifier,

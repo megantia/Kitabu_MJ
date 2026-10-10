@@ -8,10 +8,6 @@ import com.example.kitabu.data.local.BookingStatus
 import com.example.kitabu.data.local.BookingWithBook
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Sits between the ViewModels and the DAOs: no UI-facing code depends on Room directly,
- * and this is where the reserve/renew/return/cancel business logic lives.
- */
 class LibraryRepository(
     private val bookDao: BookDao,
     private val bookingDao: BookingDao

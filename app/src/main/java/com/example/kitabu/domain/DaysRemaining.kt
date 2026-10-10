@@ -8,7 +8,6 @@ fun daysRemaining(returnDeadlineMillis: Long, nowMillis: Long = System.currentTi
     return ceil(diff / DAY_MILLIS.toDouble()).toInt()
 }
 
-/** A reservation must run for at least one day and no more than [MAX_RENTAL_DAYS]. */
 fun isValidRentalDuration(days: Int): Boolean = days in 1..MAX_RENTAL_DAYS
 
 const val MAX_RENTAL_DAYS = 30
